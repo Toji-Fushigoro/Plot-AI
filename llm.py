@@ -42,7 +42,7 @@ response = client.chat.send(
         {"role" : 'system', "content" : SYS_PROMPT},
         {"role" : 'user', "content" : usr_input}
         ],
-    stream = False
+    tools=[BASH_TOOL],
 )
 
 output = response.choices[0].message.content
