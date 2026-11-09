@@ -11,7 +11,30 @@ client = OpenRouter(
 
 usr_input = input("Enter your prompt")
 
-SYS_PROMPT = "You are an AI Agent and user is accessing you from a harness review their prompt and do the specified task"
+SYS_PROMPT = """
+You are an AI Agent and user is accessing you from a harness.
+Review their prompt and do the specified task.
+use bash tool for inspecting file
+"""
+
+BASH_TOOL = {
+        "type": "function",
+        "function": {
+            "name": "bash",
+            "description": "Run a shell command and return its output",
+            "parameters": {
+                "type": "object",
+                "properties":{
+                    "command"{
+                        "type": "string",
+                        "description":  "The shell command to run"
+                        }
+            },
+                "required": ["command"],        
+        },
+    },
+}
+
 
 response = client.chat.send(
     model="nvidia/nemotron-3.5-super-vl:free",
