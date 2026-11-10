@@ -1,5 +1,8 @@
 import os
 import sys
+import subprocess
+import json
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -14,7 +17,8 @@ usr_input = input("Enter your prompt")
 SYS_PROMPT = """
 You are an AI Agent and user is accessing you from a harness.
 Review their prompt and do the specified task.
-use bash tool for inspecting file
+also check if it is windows or linux/unix.
+use bash tool for inspecting file 
 """
 
 BASH_TOOL = {
@@ -25,7 +29,7 @@ BASH_TOOL = {
             "parameters": {
                 "type": "object",
                 "properties":{
-                    "command"{
+                    "command": {
                         "type": "string",
                         "description":  "The shell command to run"
                         }
@@ -36,8 +40,12 @@ BASH_TOOL = {
 }
 
 
+def bashtool(command):
+    result = subprocess.run(command, shell = True, capture_output = True, text = True)
+    return result.stdout + result.stderr
+
 response = client.chat.send(
-    model="nvidia/nemotron-3.5-super-vl:free",
+    model="nvidia/nemotron-3-ultra-550b-a55b:free",
     messages = [
         {"role" : 'system', "content" : SYS_PROMPT},
         {"role" : 'user', "content" : usr_input}
@@ -45,7 +53,9 @@ response = client.chat.send(
     tools=[BASH_TOOL],
 )
 
-output = response.choices[0].message.content
+
+message = response.choices[0].message
+output = message.content
 
 completion_details = response.usage.completion_tokens_details
 prompt_details = response.usage.prompt_tokens_details
@@ -58,4 +68,11 @@ usage = {
         }
 
 print("\n Agents: ", output, "\n")
+
+if message.tool_calls:
+    tool_call = message.tool_calls[0]
+    command = json.loads(tool_call.function.arguments)["command"]
+    print("Tool: Bash ", command)
+    print(bashtool(command), "\n")
+
 print(usage)
